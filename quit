@@ -1,0 +1,204 @@
+diff --git a/app/controllers/posts_controller.rb b/app/controllers/posts_controller.rb
+index 110f0ac..80528af 100644
+--- a/app/controllers/posts_controller.rb
++++ b/app/controllers/posts_controller.rb
+@@ -1,6 +1,7 @@
+ class PostsController < ApplicationController
+   def index
+     @posts = Post.all
++        <% raise unless name %>
+   end
+ 
+   def show
+@@ -12,7 +13,7 @@ class PostsController < ApplicationController
+   end
+ 
+   def create
+-    @post = Post.new(params.require(:post).permit(:title, :body))
++    @post = current_user.posts.build(params.require(:post).permit(:title, :body))
+ 
+     if @post.save
+       flash[:notice] = "Post was saved."
+diff --git a/app/models/post.rb b/app/models/post.rb
+index 6ad2382..f6446ae 100644
+--- a/app/models/post.rb
++++ b/app/models/post.rb
+@@ -1,3 +1,6 @@
+ class Post < ActiveRecord::Base
+   has_many :comments
++  belongs_to :user
++
++  default_scope { order('created_at DESC')}
+ end
+diff --git a/app/models/user.rb b/app/models/user.rb
+index 6f7c9c7..a8d1708 100644
+--- a/app/models/user.rb
++++ b/app/models/user.rb
+@@ -3,4 +3,5 @@ class User < ActiveRecord::Base
+   # :confirmable, :lockable, :timeoutable and :omniauthable
+   devise :database_authenticatable, :registerable,
+          :recoverable, :rememberable, :trackable, :validatable, :confirmable
++         has_many :posts
+ end
+diff --git a/app/views/devise/sessions/new.html.erb b/app/views/devise/sessions/new.html.erb
+index b261cfd..864b0c8 100644
+--- a/app/views/devise/sessions/new.html.erb
++++ b/app/views/devise/sessions/new.html.erb
+@@ -1,26 +1,28 @@
+-<h2>Log in</h2>
++<h2>Sign in</h2>
+ 
+-<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
+-  <div class="field">
+-    <%= f.label :email %><br />
+-    <%= f.email_field :email, autofocus: true %>
++<div class="row">
++  <div class="col-md-8">
++    <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
++      <%= devise_error_messages! %>
++      <div class="form-group">
++        <%= f.label :email %>
++        <%= f.email_field :email, autofocus: true, class: 'form-control', placeholder: "Enter email" %>
++      </div>
++      <div class="form-group">
++        <%= f.label :password %>
++        <%= f.password_field :password, class: 'form-control', placeholder: "Enter password" %>
++      </div>
++      <div class="form-group">
++        <% if devise_mapping.rememberable? %>
++          <%= f.label :remember_me, class: 'checkbox' do %>
++            <%= f.check_box :remember_me %> Remember me
++          <% end %>
++        <% end %>
++        <%= f.submit "Sign in", class: 'btn btn-success' %>
++      </div>
++      <div class="form-group">
++        <%= render "devise/shared/links" %>
++      </div>
++    <% end %>
+   </div>
+-
+-  <div class="field">
+-    <%= f.label :password %><br />
+-    <%= f.password_field :password, autocomplete: "off" %>
+-  </div>
+-
+-  <% if devise_mapping.rememberable? -%>
+-    <div class="field">
+-      <%= f.check_box :remember_me %>
+-      <%= f.label :remember_me %>
+-    </div>
+-  <% end -%>
+-
+-  <div class="actions">
+-    <%= f.submit "Log in" %>
+-  </div>
+-<% end %>
+-
+-<%= render "devise/shared/links" %>
++</div>
+\ No newline at end of file
+diff --git a/app/views/posts/index.html.erb b/app/views/posts/index.html.erb
+index 8e7bf65..2d5f41a 100644
+--- a/app/views/posts/index.html.erb
++++ b/app/views/posts/index.html.erb
+@@ -1,10 +1,15 @@
+ <h1>All Posts</h1>
+ <% @posts.each do |post| %>
+   <div class="media">
+-     <div class="media-body">
++    <div class="media-body">
+       <h4 class="media-heading">
+         <%= link_to post.title, post %>
+       </h4>
++       <small>
++         submitted <%= time_ago_in_words(post.created_at) %> ago by <%= post.user.name %><br/>
++         <%= post.comments.count %> Comments
++         
++       </small>
+     </div>
+   </div>
+-  <% end %>
+\ No newline at end of file
++<% end %>
+\ No newline at end of file
+diff --git a/config/application.example.yml b/config/application.example.yml
+index 5d70283..f149b6e 100644
+--- a/config/application.example.yml
++++ b/config/application.example.yml
+@@ -1,2 +1,3 @@
+ SENDGRID_PASSWORD:
+-SENDGRID_USERNAME:
+\ No newline at end of file
++SENDGRID_USERNAME: 
++SECRET_KEY_BASE: 
+\ No newline at end of file
+diff --git a/db/schema.rb b/db/schema.rb
+index 10871d7..bbab151 100644
+--- a/db/schema.rb
++++ b/db/schema.rb
+@@ -11,7 +11,7 @@
+ #
+ # It's strongly recommended that you check this file into your version control system.
+ 
+-ActiveRecord::Schema.define(version: 20141109101944) do
++ActiveRecord::Schema.define(version: 20141109235720) do
+ 
+   create_table "comments", force: true do |t|
+     t.text     "body"
+@@ -27,8 +27,11 @@ ActiveRecord::Schema.define(version: 20141109101944) do
+     t.text     "body"
+     t.datetime "created_at"
+     t.datetime "updated_at"
++    t.integer  "user_id"
+   end
+ 
++  add_index "posts", ["user_id"], name: "index_posts_on_user_id"
++
+   create_table "users", force: true do |t|
+     t.string   "name"
+     t.string   "email",                  default: "", null: false
+diff --git a/db/seeds.rb b/db/seeds.rb
+index 8f3bc38..649bf6b 100644
+--- a/db/seeds.rb
++++ b/db/seeds.rb
+@@ -1,4 +1,25 @@
+  require 'faker'
++ #create users
++ 5.times do
++  user = User.new(
++    name:     Faker::Name.name,
++    email:    Faker::Internet.email,
++    password: Faker::Lorem.characters(10)
++  )
++  user.skip_confirmation!
++  user.save!
++end
++users = User.all
++# Note: by calling `User.new` instead of `create`,
++# we create an instance of User which isn't immediately saved to the database.
++
++# The `skip_confirmation!` method sets the `confirmed_at` attribute
++# to avoid triggering an confirmation email when the User is saved.
++
++# The `save` method then saves this User to the database.
++
++
++
+  
+  # Create Posts
+  50.times do
+@@ -16,7 +37,12 @@
+      body: Faker::Lorem.paragraph
+    )
+  end
++ User.first.update_attributes!(
++  email: 'drekslpr@gmail.com',
++  password: 'helloworld'
++)
+  
+  puts "Seed finished"
++ puts "#{User.count} users created"
+  puts "#{Post.count} posts created"
+  puts "#{Comment.count} comments created"
+\ No newline at end of file
