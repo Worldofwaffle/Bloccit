@@ -39,15 +39,15 @@ group :doc do
   # bundle exec rake doc:rails generates the API under doc/api.
   gem 'sdoc', require: false
 end
- gem 'bootstrap-sass', '~> 3.1.1'
- gem 'devise'
- gem 'pundit'
- gem 'simple_form'
- gem 'redcarpet'
- gem 'mini_magick'
-  gem 'carrierwave'
-  gem 'fog'
-   gem 'will_paginate', '~> 3.0.5'
+gem 'bootstrap-sass', '~> 3.1.1'
+gem 'devise'
+gem 'pundit'
+gem 'simple_form'
+gem 'redcarpet'
+gem 'mini_magick'
+gem 'carrierwave'
+gem 'fog'
+gem 'will_paginate', '~> 3.0.5'
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 

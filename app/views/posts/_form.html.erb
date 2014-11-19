@@ -1,4 +1,4 @@
- <%= form_for [topic, post] do |f| %>
+ <%= form_for [topic, post ] do |f| %>
   <% if post.errors.any? %>
     <div class="alert alert-danger">
       <h4>There are <%= pluralize(post.errors.count, "error") %>.</h4>
@@ -17,10 +17,10 @@
     <%= f.label :body %>
     <%= f.text_area :body, rows: 8, class: 'form-control', placeholder: "Enter post body" %>
   <% end %>
-  <% if post.image? %>
+  <% if post.image %>
     <div class="form-group">
       <p>Current image</p>
-      <%= image_tag( current_user.image.thumb.url ) %>
+      <%= image_tag post.image.thumb.url %>
     </div>
   <% end %>
   <div class="form-group">
