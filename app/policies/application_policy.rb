@@ -37,7 +37,9 @@ class ApplicationPolicy
   def scope
      record.class
   end
+    private
 
+ 
   class Scope
     attr_reader :user, :scope
 

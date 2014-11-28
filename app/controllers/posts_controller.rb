@@ -3,11 +3,7 @@ class PostsController < ApplicationController
     @topic = Topic.find(params[:topic_id])
     @post = Post.find(params[:id])
     @comments = @post.comments
-<<<<<<< HEAD
-     @comment = Comment.new(post_id: @post.id)
-=======
     @comment = Comment.new(post_id: @post.id)
->>>>>>> 4cf4e588bc522c0fe2ae212f02a335354a80e9fd
   end
 
   def new
