@@ -49,6 +49,7 @@ users = User.all
      body: Faker::Lorem.paragraph
    )
  end
+
 # Create an admin user
  admin = User.new(
    name:     'Admin User',
