@@ -45,9 +45,11 @@ group :doc do
   gem 'sdoc', require: false
 end
 
-
-gem 'bootstrap-sass', '~> 3.1.1'
+#Bootstrap Sass
+gem 'bootstrap-sass', '~> 3.3.1'
 gem 'autoprefixer-rails'
+
+
 gem 'devise'
 gem 'pundit'
 gem 'simple_form'
