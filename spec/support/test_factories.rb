@@ -17,5 +17,5 @@ module TestFactories
      user.save
      user
     end
-   end
+   
 end
